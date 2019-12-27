@@ -13,7 +13,7 @@ def connect():
 def getall():
     con=connect()
     cur=con.cursor()
-    cur.execute("SELECT a.*,b.Address FROM restaurants a,restaurant_address b where a.`Restaurant ID`=b.`Restaurant ID`")
+    cur.execute("SELECT a.*,b.Address,b.Latitude,b.Longitude FROM restaurants a,restaurant_address b where a.`Restaurant ID`=b.`Restaurant ID`")
     res=cur.fetchall()
     k=[]
     cui=[]

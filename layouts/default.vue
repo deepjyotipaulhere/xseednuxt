@@ -7,7 +7,9 @@
                 <div
                     class="collapse navbar-collapse" id="navcol-1">
                     <ul class="nav navbar-nav ml-auto">
-                        <li class="nav-item" role="presentation"><nuxt-link to="/login" class="nav-link">Sign In</nuxt-link></li>
+                      <li class="nav-item" role="presentation" v-if="isloggedin"><button @click.prevent="logout" class="btn btn-outline-danger">Sign Out</button></li>
+                        <li class="nav-item" role="presentation" v-else><nuxt-link to="/login" class="nav-link">Sign In</nuxt-link></li>
+                        
                         <li class="nav-item" role="presentation"><a class="nav-link" href="https://app.enhancv.com/share/54986e24?utm_medium=growth&utm_campaign=share-resume&utm_source=dynamic" target="_blank">My Portfolio&nbsp;<i class="fa fa-external-link"></i></a></li>
                     </ul>
                 </div>
@@ -17,3 +19,26 @@
     <nuxt />
   </div>
 </template>
+<script>
+export default {
+  methods:{
+    logout(){
+      localStorage.clear()
+      location.href="/"
+    }
+  },
+  computed:{
+    isloggedin(){
+      try{
+        if (localStorage.getItem('login')=='true')
+          return true
+        else
+          return false
+      }
+      catch(ex){
+        return false
+      }
+    }
+  }
+}
+</script>

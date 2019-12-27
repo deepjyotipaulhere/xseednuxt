@@ -1,5 +1,10 @@
 <template>
   <div>
+    <div class="container" v-if="mypos!='' && isloggedin" style="margin-top:20px">
+      <h5><i class="fa fa-map-marker"></i> My Location</h5>
+      <iframe class="shadow" allowfullscreen="" frameborder="0" width="100%" height="200" :src="'https://maps.google.com/maps?q='+mypos.latitude+','+mypos.longitude+'&hl=en&z=14&amp;output=embed'"></iframe>
+    </div>
+    
     <div style="margin-top: 20px;">
         <div class="container">
             <div class="row">
@@ -72,7 +77,7 @@
         <div class="container">
             <div class="row d-flex">
                 <div class="col-sm-12 col-md-4" v-for="(x,i) in result" :key="i">
-                  <a href="#!" style="text-decoration:none" @click.prevent="showmodal(x['Restaurant Name'],x['Address'])">
+                  <a href="#!" style="text-decoration:none" @click.prevent="showmodal(x['Restaurant Name'],x['Latitude'],x['Longitude'],x['Address'])">
                     <div class="card shadow" style="margin-bottom:10px">
                         <div class="card-body">
                             <h5 class="text-info card-title" style="font-family: Muli, sans-serif;font-weight:bold">{{x['Restaurant Name']}}<br></h5>
@@ -96,8 +101,8 @@
             <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">{{restname}}</h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
-                    <div class="modal-body" style="padding: 0px;"><iframe allowfullscreen="" frameborder="0" width="100%" height="700" :src="restadd"></iframe></div>
+                        <h4 class="modal-title">{{restname}}<br><span style="font-size:small;color:#555">{{address}}</span></h4><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>
+                    <div class="modal-body" style="padding: 0px;"><iframe allowfullscreen="" frameborder="0" width="100%" height="700" :src="'https://maps.google.com/maps?q='+restadd.lat+','+restadd.long+'&hl=en&z=14&amp;output=embed'"></iframe></div>
                 </div>
             </div>
         </div>
@@ -115,7 +120,9 @@ export default {
       selectedsort:'',
       search:'',
       restadd:'',
-      restname:''
+      restname:'',
+      mypos:'',
+      address:''
     }
   },
   created(){
@@ -124,15 +131,25 @@ export default {
   methods:{
     fetchall()
     {
-      this.$axios.get("http://localhost:5000/getall").then(response=>{
-        this.restaurants=response.data
-        this.result=response.data.res
-      })
+        this.$axios.get("http://localhost:5000/getall").then(response=>{
+          this.restaurants=response.data
+          this.result=response.data.res
+          
+          if(this.isloggedin)
+          {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(this.showPosition);
+            } else {
+              x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+          }
+        })
     },
-    showmodal(name,address){
+    showmodal(name,lat,long,address){
       $(document).ready(()=>{
-        this.restadd='https://www.google.com/maps/embed/v1/place?key=AIzaSyBng7HbphTIPki4LNECmUs4y0tjykem-gE&q='+address+'&zoom=14'
+        this.restadd={lat:lat,long:long}
         this.restname=name
+        this.address=address
         $('#exampleModal').modal()
       });
     },
@@ -143,6 +160,9 @@ export default {
       this.selectedsort=''
       this.restadd='',
       this.restname=''
+    },
+    showPosition(position){
+      this.mypos=position.coords
     }
   },
   watch: {
@@ -198,8 +218,20 @@ export default {
     'search': function(newVal, oldVal) {
       this.result = this.restaurants.res.filter(f => f['Restaurant Name'].toLowerCase().includes(newVal.toLowerCase()));
     }
+  },
+  computed:{
+    isloggedin(){
+      try{
+        if (localStorage.getItem('login')=='true')
+          return true
+        else
+          return false
+      }
+      catch(ex){
+        return false
+      }
+    }
   }
-
 }
 </script>
 
